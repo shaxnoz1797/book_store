@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="main-content" style="margin-left: 250px; padding: 30px;">
+    <div class="card-custom shadow-sm p-4 bg-white" style="border-radius: 15px;">
+
+        <!-- 1. SARLAVHA QISMI -->
+        <h4 class="fw-bold mb-4 border-bottom pb-2 text-primary">
+            {% if edit_mode %}
+                ✏️ "{{ product.name }}" kitobini tahrirlash
+            {% else %}
+                ➕ Yangi kitob qo'shish
+            {% endif %}
+        </h4>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Formaning ichki qismi (sizda bor kodlar turaveradi) -->
+            <div class="row g-3">
+                {{ form.as_p }} <!-- Yoki o'zingiz chiroyli qilib yozgan qismlar -->
+            </div>
+
+            <div class="mt-4">
+                <!-- 2. TUGMA MATNINI HAM O'ZGARTIRAMIZ -->
+                <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
+                    {% if edit_mode %} O'zgarishlarni saqlash {% else %} Kitobni saqlash {% endif %}
+                </button>
+
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary px-4 ms-2">Bekor qilish</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

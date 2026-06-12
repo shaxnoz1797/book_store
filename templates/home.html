@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="mb-4 text-center">Bizning Mahsulotlar</h2>
+<div class="row">
+    {% for product in products %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text text-muted">{{ product.description|truncatewords:10 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="h5 mb-0 text-primary">{{ product.price }} so'm</span>
+                    <a href="{% url 'create_order' product.id %}" class="btn btn-primary">Sotib olish</a>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-top-0 text-muted small">
+                Kategoriya: {{ product.category.name }}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

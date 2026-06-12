@@ -1,0 +1,731 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* 1. Umumiy sahifa sozlamalari */
+    body { background-color: #f4f7f6; overflow-x: hidden; }
+
+    /* 2. Sidebar (Chap menyu) - Doimiy chapda turadi */
+    .sidebar-wrapper {
+        background: #2c3e50;
+        min-height: 100vh;
+        width: 250px;
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 1000;
+        padding: 20px;
+        color: white;
+    }
+
+    /* 3. Asosiy mazmun (O'ng tomon) - Sidebar kengligicha suriladi */
+    .main-content {
+        margin-left: 250px; /* Sidebar kengligi */
+        padding: 30px;
+        width: calc(100% - 250px);
+    }
+
+    /* Sidebar linklari */
+    .nav-link-custom {
+        color: #bdc3c7;
+        text-decoration: none;
+        display: block;
+        padding: 12px 15px;
+        border-radius: 10px;
+        margin-bottom: 5px;
+        transition: 0.3s;
+    }
+    .nav-link-custom:hover, .nav-link-custom.active {
+        background: #34495e;
+        color: #f1c40f;
+    }
+
+    /* Kartochkalar dizayni */
+    .card-custom {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        background: white;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    /* Kun hikmati bloki */
+    .quote-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        position: relative;
+    }
+    html {
+    scroll-behavior: smooth;
+}
+</style>
+
+<style>
+    /* Oddiy holatdagi matn */
+    .todo-text {
+        font-size: 16px;
+        color: #333;
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+
+    /* Bajarilgan (checkbox bosilgan) holatdagi matn */
+    .completed {
+        text-decoration: line-through !important; /* Ustidan chizish */
+        color: #adb5bd !important;             /* Kulrang qilish */
+        opacity: 0.6;                          /* Biroq shaffof qilish */
+    }
+</style>
+
+<div class="sidebar-wrapper d-none d-md-block">
+    <h4 class="text-warning fw-bold mb-4">📚 Kitob Olami</h4>
+    <nav>
+        <ul class="nav flex-column">
+    <li class="nav-item">
+        <!-- Dashboard (Eng tepaga chiqaradi) -->
+        <a class="nav-link-custom active" href="#">📊 Dashboard</a>
+    </li>
+    <li class="nav-item">
+            <a href="{% url 'add_product' %}" class="nav-link-custom">➕ Kitob qo'shish
+            </a>
+        </li>
+    <li class="nav-item">
+            <a href="#recent-orders-section" class="nav-link-custom">📦 Oxirgi Buyurtmalar</a>
+        </li>
+
+    <li class="nav-item">
+        <!-- Kitoblar bo'limiga -->
+        <a href="#all-books-section" class="nav-link-custom">📖 Mavjud Kitoblar</a>
+    </li>
+    <li class="nav-item">
+        <!-- Mijozlar bo'limiga -->
+        <a href="#customers-section" class="nav-link-custom">👤 Mijozlar</a>
+    </li>
+    <li class="nav-item">
+        <!-- Hisobotlar bo'limiga -->
+        <a href="#reports-section" class="nav-link-custom">📈 Hisobotlar</a>
+    </li>
+    <li class="nav-item">
+        <!-- Haftalik savdo -->
+        <a href="#sales-section" class="nav-link-custom">📉 Haftalik savdo</a>
+    </li>
+     <li class="nav-item">
+        <!-- Eslatmalar -->
+        <a href="#todo-section" class="nav-link-custom">📝 Eslatmalar</a>
+    </li>
+</ul>
+        <hr class="text-secondary my-4">
+        <a href="{% url 'home' %}" class="nav-link-custom text-danger">⬅️ Saytga qaytish</a>
+    </nav>
+</div>
+
+<div class="main-content">
+    <!-- 1. AQLLI GAPLAR -->
+    <div class="quote-box shadow-lg">
+        <div class="d-flex align-items-center">
+            <span style="font-size: 3rem;" class="me-4">💡</span>
+            <div>
+                <small class="text-white-50 fw-bold text-uppercase">Admin uchun kun tavsiyasi:</small>
+                <h4 class="mb-0 fw-bold">"{{ quote }}"</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. STATISTIKA KARTALARI -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card-custom bg-primary text-white text-center">
+                <small>Mahsulotlar</small>
+                <h3 class="mb-0 fw-bold">{{ total_products }} ta</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-custom bg-success text-white text-center">
+                <small>Haqiqiy Tushum</small>
+                <h3 class="mb-0 fw-bold">{{ paid_revenue }} s.</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-custom bg-warning text-dark text-center">
+                <small>Buyurtmalar</small>
+                <h3 class="mb-0 fw-bold">{{ total_orders }} ta</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-custom bg-info text-white text-center">
+                <small>Mijozlar</small>
+                <h3 class="mb-0 fw-bold">{{ total_customers }} ta</h3>
+            </div>
+        </div>
+        <div class="card" style="background-color: #ff4757; color: white; padding: 20px; border-radius: 15px; text-align: center;">
+    <p>Eng faol mijoz</p>
+    <h3>
+        <h3>{{ eng_faol_mijoz.username|default:"Mijoz yo'q" }}</h3>
+        {% if eng_faol_mijoz %}
+            {{ eng_faol_mijoz.username }} <!-- Yoki {{ eng_faol_mijoz.first_name }} -->
+        {% else %}
+            Hozircha yo'q
+        {% endif %}
+    </h3>
+</div>
+    </div>
+
+
+
+
+
+        <!-- 4. KAM QOLGANLAR -->
+        <div class="row mt-20">
+    <div class="col-12">
+        <div class="card-custom border-start border-4 border-danger shadow-sm py-3 px-4">
+            <h6 class="fw-bold text-danger mb-3" style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+                ⚠️ Kam qolgan mahsulotlar
+            </h6>
+            <div class="row g-2"> <!-- g-2 oraliqni kichraytiradi -->
+                {% for product in low_stock_products %}
+                <div class="col-md-6 col-lg-4"> <!-- Kattaroq ekranlarda 3 tadan chiqadi -->
+                    <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-white shadow-sm" style="transition: 0.3s;">
+                        <div class="ms-2">
+                            <div class="fw-bold text-dark" style="font-size: 0.9rem; line-height: 1.2;">{{ product.name }}</div>
+                            <small class="text-danger fw-bold" style="font-size: 0.75rem;">Qoldi: {{ product.stock }} ta</small>
+                        </div>
+                        <a href="{% url 'restock_product' product.id %}" class="btn btn-sm btn-success py-1 px-2 fw-bold" style="font-size: 0.75rem;">
+                            +10 qo'shish
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <p class="text-muted small mb-0">✅ Hamma mahsulotlar yetarli.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <!-- OXIRGI BUYURTMALAR BO'LIMI -->
+<div id="recent-orders-section" class="card-custom mt-20 shadow-sm border-0" style="background: white; border-radius: 15px;">
+    <div class="px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0 text-dark">📦 Oxirgi buyurtmalar (Top 10)</h6>
+        <form action="" method="get" class="d-flex w-50">
+                <input type="text" name="q" value="{{ query }}" class="form-control form-control-sm me-2" placeholder="Mijoz yoki kitob...">
+                <button type="submit" class="btn btn-sm btn-primary">Qidirish</button>
+            </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-borderless align-middle mb-0">
+            <thead class="bg-light">
+                <tr style="font-size: 0.75rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px;">
+                    <th class="ps-4">ID</th>
+                    <th>Mijoz</th>
+                    <th>Kitob</th>
+                    <th>Jami Narxi</th>
+                    <th>Sana</th>
+                    <th>To'lov</th>
+                    <th class="text-end pe-4">Hujjat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr style="font-size: 0.85rem; border-bottom: 1px solid #f8f9fa;">
+                    <td class="ps-4 text-muted">{{ order.id }}</td>
+                    <td class="fw-bold">{{ order.user.username }}</td>
+                    <td>{{ order.product.name }}</td>
+                    <td class="fw-bold text-dark">{{ order.total_price }} so'm</td>
+                    <td class="text-muted">{{ order.created_at|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        {% if order.is_paid %}
+                            <span style="font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; background: #e8f5e9; color: #2e7d32;">✅ To'langan</span>
+                        {% else %}
+                            <a href="{% url 'confirm_payment' order.pk %}" class="btn btn-sm btn-outline-warning border-0 p-0 fw-bold" style="font-size: 0.75rem;">
+                                ⏳ Tasdiqlash
+                            </a>
+                        {% endif %}
+                    </td>
+                    <td class="text-end pe-4">
+                        <a href="{% url 'generate_invoice_pdf' order.id %}" class="btn btn-sm btn-light text-danger border-0" title="PDF Yuklash">
+                            📄 PDF
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center py-4 text-muted">Hali buyurtmalar tushmadi.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+        <!-- BARCHA KITOBLAR JADVALI TUGADI -->
+        <div id="all-books-section" class="card-custom mt-20 shadow-sm border-0" style="background: white; border-radius: 15px;">
+    <div class="px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0 text-dark">📚 Ombordagi barcha kitoblar</h6>
+        <span class="text-muted small">{{ all_products.count }} ta mahsulot</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-borderless align-middle mb-0">
+            <thead class="bg-light">
+                <tr style="font-size: 0.75rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px;">
+                    <th class="ps-4">Rasm</th>
+                    <th>Kitob nomi</th>
+                    <th>Kategoriya</th>
+                    <th>Narxi</th>
+                    <th>Soni</th>
+                    <th>Holat</th>
+                    <th class="text-end pe-4">Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in all_products %}
+                <tr style="font-size: 0.85rem; border-bottom: 1px solid #f8f9fa;">
+                    <td class="ps-4">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="" style="width: 35px; height: 45px; object-fit: cover; border-radius: 4px;">
+                        {% else %}
+                            <div style="width: 35px; height: 45px; background: #eee; border-radius: 4px;"></div>
+                        {% endif %}
+                    </td>
+                    <td class="fw-bold text-dark">{{ product.name }}</td>
+                    <td><span class="text-muted">{{ product.category.name }}</span></td>
+                    <td class="text-dark">{{ product.price }} so'm</td>
+                    <td>
+                        {% if product.stock <= product.min_stock_limit %}
+                            <span class="text-danger fw-bold">⚠️ {{ product.stock }}</span>
+                        {% else %}
+                            <span class="text-muted">{{ product.stock }} ta</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if product.stock > 0 %}
+                            <span style="font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; background: #e8f5e9; color: #2e7d32;">Sotuvda</span>
+                        {% else %}
+                            <span style="font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; background: #ffebee; color: #c62828;">Tugagan</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end pe-4">
+                        <div class="d-flex justify-content-end gap-1">
+                            <!-- Kichikroq va nafisroq tugmalar -->
+                            <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-light text-primary border-0" title="Tahrirlash" style="padding: 4px 8px;">
+                                ✏️
+                            </a>
+                            <a href="{% url 'delete_product' product.id %}"
+                               class="btn btn-sm btn-light text-danger border-0"
+                               onclick="return confirm('O\'chirilsinmi?')"
+                               title="O'chirish" style="padding: 4px 8px;">
+                                🗑️
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+<!-- 6.MIJOZLAR BO'LIMI (MANA SHU EKRANNI SURADIGAN QISM) -->
+<div id="customers-section" class="card-custom mt-20 shadow-sm border-0" style="background: white; margin-top: 55px; border-radius: 15px;">
+    <div class="px-4 py-3 border-bottom">
+        <h6 class="fw-bold mb-0 text-dark">👤 Mijozlar tahlili (Top xaridorlar)</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table" style="width: 100%; border-collapse: collapse;">
+            <thead class="bg-light">
+                <tr style="border-bottom: 2px solid #eee;">
+                    <th class="ps-4">Mijoz ismi</th>
+                    <th>Buyurtmalar soni</th>
+                    <th>Jami sarflandgan mablag'</th>
+                    <th>TELEGRAM</th> <!-- Yangi ustun -->
+                    <th class="text-end pe-4">Holat</th>
+                </tr>
+            </thead>
+            <tbody>
+        {% for m in top_mijozlar %}
+        <tr style="border-bottom: 1px solid #f9f9f9; vertical-align: middle;">
+            <td style="font-weight: bold; padding: 15px 0;">{{ m.username }}</td>
+            <td>{{ m.b_soni }} ta buyurtma</td>
+            <td style="color: #4e73df; font-weight: bold;">{{ m.jami_sarf|default:"0" }} so'm</td>
+
+            <!-- TELEGRAM USTUNI -->
+<td>
+    {% if m.profile.telegram_username %}
+        <a href="https://t.me/{{ m.profile.telegram_username|cut:'@' }}" target="_blank" style="background: #0088cc; color: white; padding: 5px 12px; border-radius: 20px; text-decoration: none; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px;">
+            <i class="fab fa-telegram"></i> @{{ m.profile.telegram_username|cut:'@' }}
+        </a>
+    {% else %}
+        <span style="color: #ccc; font-size: 12px;">Kiritilmagan</span>
+    {% endif %}
+</td>
+
+            <td>
+                <span class="badge bg-light text-primary border border-primary" style="border-radius: 10px; padding: 5px 15px;">Doimiy mijoz</span>
+            </td>
+        </tr>
+        {% endfor %}
+
+            <!-- Dark Mode tugmasi Sidebarning eng pastiga yoki tepasiga qo'ysangiz ham bo'ladi -->
+<button id="dark-mode-btn" style="position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 10px 20px; border-radius: 30px; border: none; background: #34495e; color: white; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+    🌙 Tun rejimi
+</button>
+
+<script>
+    const btn = document.getElementById('dark-mode-btn');
+    const body = document.body;
+
+    // Avvalgi holatni eslab qolish
+    if (localStorage.getItem('theme') === 'dark') {
+        body.classList.add('dark-mode');
+        btn.innerHTML = '☀️ Kun rejimi';
+    }
+
+    btn.addEventListener('click', () => {
+        body.classList.toggle('dark-mode');
+        if (body.classList.contains('dark-mode')) {
+            localStorage.setItem('theme', 'dark');
+            btn.innerHTML = '☀️ Kun rejimi';
+        } else {
+            localStorage.setItem('theme', 'light');
+            btn.innerHTML = '🌙 Tun rejimi';
+        }
+    });
+</script>
+
+<style>
+    /* Dark Mode stillari */
+    body.dark-mode {
+        background-color: #121212 !important;
+        color: #f1f1f1 !important;
+    }
+    body.dark-mode .card,
+    body.dark-mode div[style*="background: white"],
+    body.dark-mode div[style*="background-color: white"] {
+        background-color: #1e1e1e !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
+        border: 1px solid #333 !important;
+    }
+    body.dark-mode table {
+        color: white !important;
+    }
+    body.dark-mode td, body.dark-mode th {
+        border-bottom: 1px solid #333 !important;
+    }
+    body.dark-mode input {
+        background: #2c2c2c !important;
+        color: white !important;
+        border: 1px solid #444 !important;
+    }
+</style>
+    </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+<!-- MANA SHU BLOKNI TO'LIQ KO'CHIRIB, ESKISINI O'RNIGA QO'YING -->
+<div id="reports-section" style="background: white; padding: 25px; border-radius: 15px; margin-top: 55px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+
+    <h3 style="margin-bottom: 30px; color: #2c3e50; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px;">
+        📊 Savdo va Mijozlar Tahlili
+    </h3>
+
+    <div style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap;">
+
+        <!-- 1. CHAP TOMON: Grafik (Kichikroq va ixcham) -->
+        <div style="flex: 1; min-width: 300px; max-width: 380px; background: #fff; padding: 15px; border-radius: 10px;">
+            <canvas id="myPieChart"></canvas>
+            <p style="text-align: center; margin-top: 15px; font-weight: 500; color: #7f8c8d;">Janrlar ulushi</p>
+        </div>
+
+        <!-- 2. O'NG TOMON: Eng faol mijozlar jadvali -->
+        <div style="flex: 1.5; min-width: 350px;">
+            <h4 style="margin-top: 0; margin-bottom: 15px; color: #34495e;">⭐ Eng faol mijozlar</h4>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden;">
+                    <thead style="background: #4e73df; color: white;">
+                        <tr>
+                            <th style="padding: 12px; text-align: left;">Mijoz ismi</th>
+                            <th style="padding: 12px; text-align: center;">Buyurtmalar</th>
+                            <th style="padding: 12px; text-align: right;">Darajasi</th>
+                        </tr>
+                    </thead>
+                    <tbody style="background: #f8f9fc;">
+                        {% for m in top_mijozlar %}
+                        <tr style="border-bottom: 1px solid #e3e6f0;">
+                            <td style="padding: 12px; font-weight: bold; color: #4e73df;">{{ m.username }}</td>
+                            <td style="padding: 12px; text-align: center;">{{ m.b_soni }} ta</td>
+                            <td style="padding: 12px; text-align: right;">
+                                <span style="background: #1cc88a; color: white; padding: 3px 10px; border-radius: 15px; font-size: 11px;">VIP Mijoz</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" style="padding: 20px; text-align: center;">Hozircha buyurtmalar yo'q</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!-- BLOK TUGADI -->
+
+
+
+<!-- 1. HAFTALIK SAVDO DINAMIKASI -->
+<div id="sales-section" style="background: white; padding: 25px; border-radius: 15px; margin-top: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+
+    <!-- Sarlavha va Tugmani alohida qilib, flex bilan ikki chetga suramiz -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0;">📉 Haftalik savdo dinamikasi</h3>
+
+        <!-- Excel tugmasi endi aynan o'ng burchakda turadi -->
+        <a href="{% url 'export_orders_excel' %}" class="btn btn-sm btn-outline-success border-0 fw-bold" style="display: flex; align-items: center; gap: 5px;">
+            📗 Excel yuklab olish
+        </a>
+    </div>
+
+    <div style="height: 300px;">
+        <canvas id="salesLineChart"></canvas>
+    </div>
+</div>
+
+
+ <!-- 1. Todo un xabar -->
+{% if messages %}
+    <div id="messages-container" style="position: fixed; bottom: 30px; right: 30px; z-index: 9999; min-width: 320px;">
+        {% for message in messages %}
+            <div class="alert"
+                 style="background: white;
+                        color: #333;
+                        border-radius: 10px;
+                        margin-bottom: 12px;
+                        padding: 15px 20px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                        border-left: 6px solid {% if message.tags == 'success' %}#2ecc71{% else %}#e74c3c{% endif %};
+                        animation: slideIn 0.5s ease forwards;">
+
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <!-- Ikonka qismi (oddiy va chiroyli) -->
+                    <span style="font-size: 20px;">
+                        {% if message.tags == 'success' %}
+                            <span style="color: #2ecc71;">●</span>
+                        {% else %}
+                            <span style="color: #e74c3c;">●</span>
+                        {% endif %}
+                    </span>
+                    <span style="font-weight: 500; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px;">
+                        {{ message }}
+                    </span>
+                </div>
+
+                <!-- Yopish tugmasi -->
+                <button type="button" onclick="this.parentElement.remove()"
+                        style="border: none; background: transparent; color: #ccc; cursor: pointer; font-size: 18px; transition: 0.3s;"
+                        onmouseover="this.style.color='#333'" onmouseout="this.style.color='#ccc'">
+                    &times;
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+
+    <style>
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+
+    <script>
+        setTimeout(function() {
+            let container = document.getElementById('messages-container');
+            if (container) {
+                container.style.transition = "all 0.5s ease";
+                container.style.opacity = "0";
+                container.style.transform = "translateX(20px)";
+                setTimeout(() => container.remove(), 500);
+            }
+        }, 4000);
+    </script>
+{% endif %}
+
+
+<!-- 2. SHAXSIY ESLATMALAR (To-Do) -->
+<div id="todo-section" style="background: white; padding: 25px; border-radius: 15px; margin-top: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+    <h3 style="margin-bottom: 20px;">📝 Shaxsiy eslatmalar</h3>
+
+    <form action="{% url 'todo_add' %}" method="POST" style="display: flex; gap: 10px;">
+    {% csrf_token %}
+    <input type="text" name="todo_matni" placeholder="Yangi reja..." required
+           style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+
+    <button type="submit" style="background: #4e73df; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+        Qo'shish
+    </button>
+</form>
+
+    <div style="max-height: 250px; overflow-y: auto;">
+        {% for todo in todos %}
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
+    <div style="flex: 1; display: flex; align-items: center; gap: 15px;">
+
+        <!-- CHECKBOX QISMI -->
+        <a href="{% url 'toggle_todo' todo.id %}" style="text-decoration: none; line-height: 0;">
+            <input type="checkbox"
+                   {% if todo.is_completed %} checked {% endif %}
+                   style="width: 18px; height: 18px; cursor: pointer; accent-color: #4e73df;">
+        </a>
+
+        <!-- MATN QISMI -->
+<span style="font-size: 16px; transition: 0.3s;
+      {% if todo.is_completed %}
+          text-decoration: line-through !important;
+          color: #adb5bd !important;
+          opacity: 0.6;
+      {% else %}
+          text-decoration: none;
+          color: #333;
+      {% endif %}">
+
+    {{ todo.matn }}
+
+    <!-- AGAR BAJARILGAN BO'LSA, YONIDA BELGI CHIQADI -->
+    {% if todo.is_completed %}
+        <small style="color: #28a745; margin-left: 10px; font-weight: bold; text-decoration: none !important; display: inline-block;">
+             (Bajarildi ✅)
+        </small>
+    {% endif %}
+</span>
+
+    </div>
+
+    <!-- O'CHIRISH TUGMASI -->
+    <a href="{% url 'todo_delete' todo.id %}" style="color: red; text-decoration: none; font-weight: bold; font-size: 20px; padding: 0 10px;">
+        &times;
+    </a>
+</div>
+{% endfor %}
+    </div>
+</div>
+
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ days|safe }},
+                datasets: [{
+                    label: 'Savdo (so\'m)',
+                    data: {{ sales_data|safe }},
+                    borderColor: '#4e73df',
+                    backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                    borderWidth: 2,
+                    fill: true, // Tagini rang bilan to'ldirish
+                    tension: 0.3, // Chiziqni yumshoq qilish
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                maintainAspectRatio: false, // Balandlikni o'zimiz berganimizdek ushlaydi
+                plugins: {
+                    legend: { display: false } // Legendni o'chirib turamiz (chiroyli chiqadi)
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { drawBorder: false }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+<script>
+    const ctx = document.getElementById('myPieChart').getContext('2d');
+    const myPieChart = new Chart(ctx, {
+        type: 'pie', // Grafik turi: Dumaloq
+        data: {
+            labels: {{ janr_nomlari|safe }}, // Django'dan kelgan janr nomlari
+            datasets: [{
+                label: 'Sotilgan kitoblar soni',
+                data: {{ sotilgan_soni|safe }}, // Django'dan kelgan raqamlar
+                backgroundColor: [
+                    '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+    responsive: true,
+    maintainAspectRatio: true, // Proportionallikni saqlash
+    plugins: {
+        legend: { position: 'bottom' }
+    }
+}
+    });
+</script>
+
+<script>
+    // Sahifadagi xabarlarni 3 soniyadan keyin yo'qotish
+    setTimeout(function() {
+        let messagesContainer = document.getElementById('messages-container');
+        if (messagesContainer) {
+            messagesContainer.style.transition = "opacity 0.5s ease";
+            messagesContainer.style.opacity = "0";
+            setTimeout(function() {
+                messagesContainer.remove();
+            }, 500); // Animatsiya tugagach o'chirib tashlash
+        }
+    }, 3000); // 3000 millisoniya = 3 soniya
+</script>
+<!-- HAFTALIK GRAFIK UCHUN JAVASCRIPT -->
+<script>
+    const salesCtx = document.getElementById('salesLineChart').getContext('2d');
+    new Chart(salesCtx, {
+        type: 'line',
+        data: {
+            labels: {{ hafta_kunlari|safe }},
+            datasets: [{
+                label: 'Kunlik savdo (so\'m)',
+                data: {{ savdo_miqdori|safe }},
+                borderColor: '#4e73df',
+                backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    </script>
+</div>
+</div>
+{% endblock %}
