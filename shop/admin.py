@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Product, Order
+from .models import Category, Product, Order, Author
 from .models import Profile, User
 
 from django.contrib.auth.admin import UserAdmin
@@ -30,7 +30,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 admin.site.register(User)
 admin.site.register(Profile)
-
+admin.site.register(Author)
 
 
 # User modelini admin paneldan chiqarib, qayta (o'zimizga moslab) qo'shamiz

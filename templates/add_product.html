@@ -1,35 +1,116 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="main-content" style="margin-left: 250px; padding: 30px;">
-    <div class="card-custom shadow-sm p-4 bg-white" style="border-radius: 15px;">
+<!-- SIDEBAR bilan kontent orasidagi masofani saqlash uchun -->
+<div class="main-content" style="margin-left: 250px; padding: 40px;">
 
-        <!-- 1. SARLAVHA QISMI -->
-        <h4 class="fw-bold mb-4 border-bottom pb-2 text-primary">
-            {% if edit_mode %}
-                ✏️ "{{ product.name }}" kitobini tahrirlash
-            {% else %}
-                ➕ Yangi kitob qo'shish
-            {% endif %}
-        </h4>
+    <div style="max-width: 800px; background: white; padding: 35px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f0f0f0;">
 
-        <form method="post" enctype="multipart/form-data">
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px; border-bottom: 2px solid #f8f9fa; padding-bottom: 20px;">
+            <div style="background: #1cc88a; width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                ➕
+            </div>
+            <h2 style="margin: 0; color: #2c3e50; font-weight: bold;">Yangi kitob qo'shish</h2>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
 
-            <!-- Formaning ichki qismi (sizda bor kodlar turaveradi) -->
-            <div class="row g-3">
-                {{ form.as_p }} <!-- Yoki o'zingiz chiroyli qilib yozgan qismlar -->
+            <!-- ⚠️ XATOLARNI KO'RSATISH UCHUN MANA SHU QISMNI QO'SHING -->
+    {% if form.errors %}
+        <div style="background: #fff5f5; color: #e74a3b; padding: 15px; border-radius: 10px; border: 1px solid #e74a3b; margin-bottom: 20px;">
+            <strong>Xatolik bor:</strong>
+            <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+            <div class="row g-4">
+                <!-- 1. Kitob nomi -->
+                <div class="col-md-12 mb-3">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568;">Mahsulot nomi:</label>
+                    <div style="width: 100%;">{{ form.name }}</div>
+                </div>
+
+                <!-- 2. Muallif va Kategoriya (Yonma-yon) -->
+                <div class="col-md-6">
+    <label>Muallif:</label>
+    {{ form.author }}  <!-- Bu yerda siz yozmaysiz, balki menyudan tanlaysiz -->
+</div>
+    {% if form.author.errors %}
+        <div style="color: red;">{{ form.author.errors }}</div>
+    {% endif %}
+</div>
+                <div class="col-md-6 mb-3">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568;">Kategoriya:</label>
+                    {{ form.category }}
+                </div>
+
+                <!-- 3. Tavsif -->
+                <div class="col-md-12 mb-3">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568;">Tavsif (Kitob haqida):</label>
+                    {{ form.description }}
+                </div>
+
+                <!-- 4. Narxi va Soni -->
+<div class="col-md-6 mb-3">
+    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568;">Narxi:</label>
+    {{ form.price }}
+</div>
+<div class="col-md-6 mb-3">
+    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568;">Ombordagi soni:</label>
+    {{ form.stock }}
+</div>
+
+<!-- ⚠️ YANGI QO'SHILGAN MAYDON: Minimal chegara -->
+<div class="col-md-12 mb-3">
+    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568;">Minimal chegara (Ogohlantirish uchun):</label>
+    {{ form.min_stock_limit }}
+    <small class="text-muted">Kitob soni shunchadan kam qolsa, dashboardda qizil bo'lib ko'rinadi.</small>
+</div>
+
+                <!-- 5. Rasm -->
+                <div class="col-md-12 mb-4">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568;">Kitob muqovasi (rasm):</label>
+                    <div style="padding: 10px; border: 2px dashed #e2e8f0; border-radius: 10px; background: #f8fafc;">
+                        {{ form.image }}
+                    </div>
+                </div>
             </div>
 
-            <div class="mt-4">
-                <!-- 2. TUGMA MATNINI HAM O'ZGARTIRAMIZ -->
-                <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
-                    {% if edit_mode %} O'zgarishlarni saqlash {% else %} Kitobni saqlash {% endif %}
+            <!-- Tugmalar -->
+            <div style="display: flex; gap: 15px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 25px;">
+                <button type="submit" style="background: #4e73df; color: white; border: none; padding: 12px 30px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; flex: 1;">
+                    💾 Saqlash
                 </button>
-
-                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary px-4 ms-2">Bekor qilish</a>
+                <a href="{% url 'dashboard' %}" style="background: #f8f9fc; color: #4e73df; text-decoration: none; border: 1px solid #d1d9ff; padding: 12px 30px; border-radius: 12px; font-weight: bold; text-align: center; transition: 0.3s; flex: 1;">
+                    ⬅ Orqaga
+                </a>
             </div>
         </form>
     </div>
 </div>
+
+<style>
+    /* Formadagi inputlarni chiroyli qilish */
+    input, select, textarea {
+        width: 100% !important;
+        padding: 12px 15px !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        font-size: 15px !important;
+        outline: none !important;
+        transition: 0.3s !important;
+    }
+    input:focus, select:focus, textarea:focus {
+        border-color: #4e73df !important;
+        box-shadow: 0 0 0 4px rgba(78, 115, 223, 0.1) !important;
+    }
+    textarea { min-height: 120px; }
+</style>
 {% endblock %}

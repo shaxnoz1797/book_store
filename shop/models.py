@@ -18,6 +18,15 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+
+class Author(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
+
 class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products', verbose_name="Kategoriya")
     name = models.CharField(max_length=200, verbose_name="Mahsulot nomi")
@@ -28,6 +37,9 @@ class Product(models.Model):
     image = models.ImageField(upload_to='products/', verbose_name="Rasm")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # models.py
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, null=True, blank=True)
+
 
     class Meta:
         verbose_name = "Mahsulot"

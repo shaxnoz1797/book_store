@@ -1,9 +1,11 @@
 import random
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.contrib import messages
 from django.db.models.functions import Coalesce
 from django.db.models import Value
+
 from django.views.decorators.http import require_POST
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -13,7 +15,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.cache import cache
 
 from .forms import ProductForm
-from .models import Product, Category, Order, Mijoz, Todo
+from .models import Product, Category, Order, Mijoz, Todo, Author
 
 from .serializers import CategorySerializer, ProductSerializer,OrderSerializer
 
@@ -36,10 +38,36 @@ from django.http import HttpResponse
 
 
 def home_page(request):
-    products = Product.objects.all().order_by('-created_at') # Hamma mahsulotlarni olish
-    categories = Category.objects.all()
-    return render(request, 'home.html', {'products': products, 'categories': categories})
+    # 1. Barcha mahsulotlarni olish (yangi qo'shilganlari birinchi chiqadi)
+    products_list = Product.objects.all().order_by('-created_at')
 
+    # Qidiruv (Search) - Kitob nomi yoki Muallif nomi bo'yicha
+    query = request.GET.get('q')
+    if query:
+        products_list = products_list.filter(
+            Q(name__icontains=query) |
+            Q(author__icontains=query)  # Bu yerda o'zgarish qildik
+        )
+
+    # 3. Kategoriya bo'yicha filter (Janrlar uchun)
+    cat_id = request.GET.get('category')
+    if cat_id:
+        products_list = products_list.filter(category_id=cat_id)
+
+    # 4. Pagination (Sahifalash) - Har sahifada 12 ta mahsulot
+    paginator = Paginator(products_list, 12)
+    page_number = request.GET.get('page')
+    products = paginator.get_page(page_number)
+
+    categories = Category.objects.all()
+
+    context = {
+        'products': products,
+        'categories': categories,
+        'query': query,
+        'selected_category': cat_id,
+    }
+    return render(request, 'home.html', context)
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -83,6 +111,7 @@ def admin_dashboard(request):
         days_list.append(uzb_days[target_date.strftime('%A')])
         sales_list.append(float(daily_sum))
 
+
     # --- STATISTIKALAR ---
     total_products = Product.objects.count()
     total_orders = Order.objects.count()
@@ -113,6 +142,7 @@ def admin_dashboard(request):
 
     # Ombordagi hamma kitoblar
     all_products = Product.objects.all().order_by('-created_at')
+    all_products = Product.objects.all().order_by('-id')
 
     # --- AQLLI GAPLAR ---
     quotes = [
@@ -121,7 +151,11 @@ def admin_dashboard(request):
         "Bugungi kitobxon — ertangi rahbar.",
         "Mutolaa — aqlni charxlaydi.",
         "Kitoblar — vaqt dengizida suzib yuruvchi donolik kemalaridir.",
-        "Podkast tavsiyasi: 'Navoiyxonlik' yoki 'Muvaffaqiyatli insonlar' turkumini eshiting."
+        "Muvaffaqiyat — bu to'xtab qolmaslikdir.",
+        "Kitob o'qigan inson hech qachon yolg'iz qolmaydi.",
+        "Sifat miqdordan muhimroqdir.",
+        "Bugungi mehnat — ertangi natija.",
+        "Bilim - bu dunyodagi eng kuchli qurol."
     ]
     random_quote = random.choice(quotes)
 
@@ -136,8 +170,8 @@ def admin_dashboard(request):
         eng_faol_mijoz = User.objects.get(id=eng_faol_data['user'])
 
     # Masalan, agar sizda janrlar queryseti bo'lsa:
-    janr_nomlari = ["Dramma", "Badiiy", "Detektiv"]  # Buni bazadan olingan nomlar bilan almashtiring
-    sotilgan_soni = [16, 7, 6]  # Buni bazadan olingan raqamlar bilan almashtiring
+    janr_nomlari = ["Dramma", "Badiiy", "Detektiv","Siyosiy"]  # Buni bazadan olingan nomlar bilan almashtiring
+    sotilgan_soni = [16, 7, 6, 3]  # Buni bazadan olingan raqamlar bilan almashtiring
 
     top_mijozlar = User.objects.select_related('profile').annotate(
         b_soni=Count('order'),
@@ -155,30 +189,59 @@ def admin_dashboard(request):
         hafta_kunlari.append(kun.strftime('%d-%b'))  # Masalan: 11-Jun
         savdo_miqdori.append(float(jami))
 
-    context = {
-            'quote': random_quote,
-            'orders': orders,
-            'query': query,
-            'days': json.dumps(days_list),
-            'sales_data': json.dumps(sales_list),
-            'total_products': total_products,
-            'total_orders': total_orders,
-            'total_customers': total_customers,
-            'paid_revenue': paid_revenue,
-            'pending_revenue': pending_revenue,
-            'low_stock_products': low_stock_products,
-            'top_product': top_product,
-            'all_products': all_products,
-            'customers_list': customers_list,
-            'category_reports': category_reports,
-            'eng_faol_mijoz': eng_faol_mijoz,
-            'janr_nomlari': janr_nomlari,
-            'sotilgan_soni': sotilgan_soni,
-            'top_mijozlar': top_mijozlar,
-            'todos': todos,
-            'hafta_kunlari': hafta_kunlari,
-            'savdo_miqdori': savdo_miqdori,
+    # 1. Ma'lumotlarni bazadan olish
+    view_type = request.GET.get('view_type', 'dashboard')
 
+    # 1. Barcha o'zgaruvchilarni boshida bo'sh qiymat bilan e'lon qilamiz (NameError oldini olish uchun)
+    products = []
+    selected_item_name = ""
+    categories = Category.objects.all()
+    authors = Author.objects.all()
+
+    # 2. Dinamik shartlar
+    if view_type == 'category_books':
+        cat_id = request.GET.get('cat_id')
+        if cat_id:
+            category = Category.objects.get(id=cat_id)
+            products = Product.objects.filter(category=category)
+            selected_item_name = category.name
+
+    elif view_type == 'author_books':
+        author_id = request.GET.get('author_id')
+        if author_id:
+            author_obj = Author.objects.get(id=author_id)
+            products = Product.objects.filter(author=author_obj)
+            selected_item_name = author_obj.name
+
+    # 3. Context yaratish (Hammasi shu yerda bo'lishi shart)
+
+    context = {
+        'view_type': view_type,
+        'total_products': total_products,
+        'paid_revenue': paid_revenue,
+        'total_orders': total_orders,
+        'total_customers': total_customers,
+        'all_products': all_products,
+        'quote': random_quote,
+        'low_stock_products': low_stock_products,
+        'categories': categories,
+        'authors': authors,
+        'products': products,
+        'selected_item_name': selected_item_name,
+        'todos': todos,
+        'query': query,  # Qidiruv saqlanib turishi uchun
+
+        # 1. Buyurtmalar jadvali chiqishi uchun shart!
+        'orders': orders,
+
+        # 2. Grafiklar uchun ma'lumotlar
+        'janr_nomlari': janr_nomlari,
+        'sotilgan_soni': sotilgan_soni,
+        'hafta_kunlari': hafta_kunlari,
+        'savdo_miqdori': savdo_miqdori,
+
+        # 3. Mijozlar jadvalida 0 bo'lib qolmasligi uchun to'g'ri top_mijozlarni yuboramiz
+        'top_mijozlar': top_mijozlar,
     }
 
     return render(request, 'dashboard.html', context)
@@ -236,36 +299,29 @@ def confirm_payment(request, pk):
     return redirect('dashboard')
 
 
+def export_sales_excel(request):
+    try:
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Haftalik Savdo"
 
-def export_orders_excel(request):
-    # 1. Yangi Excel kitobi yaratamiz
-    workbook = openpyxl.Workbook()
-    sheet = workbook.active
-    sheet.title = "Buyurtmalar"
+        # Sarlavhalar
+        ws.append(['Sana', 'Savdo miqdori (so\'m)'])
 
-    # 2. Jadval ustunlari (Header)
-    columns = ['ID', 'Mijoz', 'Mahsulot', 'Narxi', 'Holati', 'Sana']
-    sheet.append(columns)
+        today = timezone.now().date()
+        # Oxirgi 7 kunni Excelga yozish
+        for i in range(6, -1, -1):
+            kun = today - timedelta(days=i)
+            # Sizning kodingizdagi model maydonlari: created_at va total_price
+            jami = Order.objects.filter(created_at__date=kun).aggregate(Sum('total_price'))['total_price__sum'] or 0
+            ws.append([kun.strftime('%Y-%m-%d'), float(jami)])
 
-    # 3. Bazadan ma'lumotlarni olib, Excelga qo'shamiz
-    orders = Order.objects.all().order_by('-created_at')
-
-    for order in orders:
-        sheet.append([
-            order.id,
-            order.user.username,
-            str(order.product) if order.product else "Noma'lum",
-            order.total_price,
-            order.get_status_display(),  # 'completed' emas, 'Yetkazib berildi' deb chiqishi uchun
-            order.created_at.strftime('%Y-%m-%d %H:%M')
-        ])
-
-    # 4. Faylni brauzerga yuboramiz
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename=buyurtmalar.xlsx'
-
-    workbook.save(response)
-    return response
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=haftalik_savdo.xlsx'
+        wb.save(response)
+        return response
+    except Exception as e:
+        return HttpResponse(f"Xatolik yuz berdi: {e}")
 
 
 def generate_invoice_pdf(request, order_id):
@@ -330,13 +386,20 @@ def add_product(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            return redirect('dashboard')  # Saqlab bo'lgach dashboardga qaytadi
+            # Saqlashdan oldin ma'lumotlarni tekshiramiz
+            product = form.save(commit=False)
+            print(f"DEBUG: Muallif qiymati -> {product.author}")
+
+            if product.author is None:
+                print("XATO: Muallif tanlanmagan!")
+
+            product.save()  # Mana shu joyda xato beryapti
+            return redirect('dashboard')
+        else:
+            print(f"FORMA XATOLARI: {form.errors}")
     else:
         form = ProductForm()
-
-    return render(request, 'add_product.html', {'form': form, 'quote': "Yangi bilimlar manbai — yangi kitoblarda!"})
-
+    return render(request, 'add_product.html', {'form': form})
 
 def create_order(request, product_id):
     if not request.user.is_authenticated:
@@ -387,10 +450,6 @@ def product_buy(request, pk):
     return redirect('admin_dashboard') # 'dashboard.html' emas, url nomini yozing
 
 
-# views.py ichida
-
-
-
 
 # 1. Qo'shish funksiyasi (Sizda nomi 'todo_add' yoki shunga o'xshash bo'lishi mumkin)
 def todo_add(request):
@@ -400,11 +459,16 @@ def todo_add(request):
         if matn_input:  # Agar input bo'sh bo'lmasa
             yangi_todo = Todo(matn=matn_input)
             yangi_todo.save()  # BAZAGA SAQLASH
+            if matn_input:
+                Todo.objects.create(matn=matn_input)
+                # 🟢 MANA BU BUYRUQ XABARNOMANI CHIQAR
             messages.success(request, "Yangi eslatma muvaffaqiyatli qo'shildi! ➕")
         else:
             messages.error(request, "Matn kiriting!")
 
     return redirect('dashboard')
+
+
 
 # 2. O'chirish funksiyasi
 def todo_delete(request, pk):
@@ -413,6 +477,9 @@ def todo_delete(request, pk):
     # O'chirilganda xato (qizil) xabarini beramiz
     messages.error(request, "Eslatma o'chirib tashlandi! 🗑️")
     return redirect('dashboard')
+
+
+
 
 # 3. Checkbox (toggle) funksiyasida xabar QOLMAYDI
 def toggle_todo(request, pk):
