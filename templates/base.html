@@ -6,6 +6,7 @@
     <title>{% block title %}Online Do'kon{% endblock %}</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 <body>
     <!-- Navbar -->
@@ -28,6 +29,18 @@
         <a class="btn btn-outline-light btn-sm me-2" href="{% url 'login' %}">Kirish</a>
         <a class="btn btn-light btn-sm" href="{% url 'signup' %}">Ro'yxatdan o'tish</a>
     {% endif %}
+
+                <!-- Savatcha tugmasi -->
+<a href="{% url 'cart_detail' %}" class="nav-link text-white position-relative ms-3">
+    <i class="bi bi-cart3" style="font-size: 1.5rem;"></i> <!-- Savatcha rasmi -->
+    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cart-count">
+        {% if request.user.is_authenticated %}
+            {{ request.user.cart.items.count|default:0 }}
+        {% else %}
+            0
+        {% endif %}
+    </span>
+</a>
 </div>
         </div>
     </nav>
@@ -35,6 +48,18 @@
 
     <div class="container mt-4">
         {% block content %}
+
+        <!-- Bu kod base.html ichida bo'lsa, xoh Home bo'lsin, xoh Dashboard, xabarlar chiqadi -->
+<div class="container mt-3">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
         {% endblock %}
     </div>
 

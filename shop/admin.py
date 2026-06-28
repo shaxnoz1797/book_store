@@ -1,9 +1,5 @@
 from django.contrib import admin
-
-from .models import Category, Product, Order, Author
-from .models import Profile, User
-
-from django.contrib.auth.admin import UserAdmin
+from .models import Category, Product, Order, Author, OrderItem
 
 
 @admin.register(Category)
@@ -12,40 +8,31 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'price', 'stock', 'created_at']
     list_filter = ['category', 'created_at']
     search_fields = ['name', 'description']
-    list_editable = ['price', 'stock'] # Admin panelni o'zida tahrirlash imkoniyati
+    list_editable = ['price', 'stock']
 
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    readonly_fields = ['product', 'price', 'quantity']  # Adminlar buni o'zgartira olmasin (faqat ko'rsin)
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'product', 'quantity', 'total_price', 'status', 'created_at']
-    list_filter = ['status', 'created_at']
-    list_editable = ['status']
+    # 'product' va 'quantity'ni list_display dan olib tashladik
+    list_display = ['id', 'user', 'full_name', 'total_price', 'status', 'is_paid', 'created_at']
+    list_filter = ['status', 'is_paid', 'created_at']
+    search_fields = ['full_name', 'phone', 'address']
+
+    # Buyurtma ichiga kirganda mahsulotlar ro'yxatini chiqaradi
+    inlines = [OrderItemInline]
 
 
-admin.site.register(User)
-admin.site.register(Profile)
 admin.site.register(Author)
-
-
-# User modelini admin paneldan chiqarib, qayta (o'zimizga moslab) qo'shamiz
-try:
-    admin.site.unregister(User)
-except admin.sites.NotRegistered:
-    pass
-
-
-@admin.register(User)
-class CustomUserAdmin(UserAdmin):
-    # Jadvalda ko'rinadigan ustunlar
-    list_display = ('username', 'email', 'telegram_username', 'is_staff')
-
-    # Ichiga kirganda tahrirlash qismi
-    fieldsets = UserAdmin.fieldsets + (
-        ('Telegram', {'fields': ('telegram_username',)}),
-    )

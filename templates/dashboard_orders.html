@@ -1,0 +1,66 @@
+{% extends 'dashboard_base.html' %}
+
+{% block dash_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Barcha Buyurtmalar</h1>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-sm">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Mijoz</th>
+                <th>Kitob</th>
+                <th>Soni</th>
+                <th>Jami Narx</th>
+                <th>Holat</th>
+                <th>Amallar</th>
+                <th>Hujjat</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for order in orders %}
+    <tr>
+        <td>#{{ order.id }}</td>
+        <td>{{ order.user.username }}</td>
+
+        <!-- KITOB USTUNI -->
+        <td>
+            <small>
+            {% for item in order.items.all %}
+                • {{ item.product.name }} ({{ item.quantity }} ta)<br>
+            {% endfor %}
+            </small>
+        </td>
+
+        <!-- SONI USTUNI -->
+        <td>{{ order.items.count }} xil</td>
+
+        <td>{{ order.total_price }} so'm</td>
+        <td>
+            {% if order.is_paid %}
+                <span class="badge bg-success">To'langan</span>
+            {% else %}
+                <span class="badge bg-warning">Kutilmoqda</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if not order.is_paid %}
+            <form action="{% url 'confirm_payment' order.id %}" method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-primary">To'lovni tasdiqlash</button>
+            </form>
+            {% endif %}
+        </td>
+        <td>
+            <a href="{% url 'generate_invoice_pdf' order.id %}" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-file-pdf"></i> PDF
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+    </table>
+</div>
+{% endblock %}

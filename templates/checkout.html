@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Buyurtmani rasmiylashtirish</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-7">
+                <div class="card p-4 shadow-sm">
+                    <h4>Yetkazib berish ma'lumotlari</h4>
+                    <input type="text" name="full_name" class="form-control mb-3" placeholder="To'liq ismingiz" required>
+                    <input type="text" name="phone" class="form-control mb-3" placeholder="Telefon raqamingiz" required>
+                    <textarea name="address" class="form-control mb-3" placeholder="To'liq manzilingiz yoki lokatsiya" rows="3" required></textarea>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="card p-4 shadow-sm bg-light">
+                    <h4>To'lov turi</h4>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="payment_method" value="cash" id="cash" checked>
+                        <label class="form-check-label" for="cash">Naqd pul (Yetkazilganda)</label>
+                    </div>
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="radio" name="payment_method" value="card" id="card">
+                        <label class="form-check-label" for="card">Plastik karta (Payme/Click)</label>
+                    </div>
+                    <hr>
+                    <h5>Jami: {{ cart.total_price }} so'm</h5>
+                    <button type="submit" class="btn btn-success w-100 mt-3">Buyurtmani yakunlash</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

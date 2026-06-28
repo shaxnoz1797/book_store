@@ -1,0 +1,23 @@
+{% extends 'dashboard_base.html' %}
+
+{% block dash_content %}
+<h2>Mijozlar ro'yxati</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Ismi</th>
+            <th>Buyurtmalar soni</th>
+            <th>Jami sarf-harajat</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for customer in customers %}
+        <tr>
+            <td>{{ customer.username }}</td>
+            <td>{{ customer.order_count }} ta</td>
+            <td>{{ customer.total_spent }} so'm</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

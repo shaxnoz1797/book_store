@@ -1,0 +1,32 @@
+{% extends 'dashboard_base.html' %}
+
+{% block dash_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Kitob mualliflari</h1>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>#ID</th>
+                <th>Muallif ismi</th>
+                <th>Kitoblar soni (bazada)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for author in authors %}
+            <tr>
+                <td>{{ author.id }}</td>
+                <td>{{ author.name }}</td>
+                <td>{{ author.product_set.count }} ta</td> <!-- Agar Modelda bog'liqlik bo'lsa -->
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center">Hali mualliflar qo'shilmagan.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

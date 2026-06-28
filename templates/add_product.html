@@ -16,7 +16,7 @@
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
 
-            <!-- ⚠️ XATOLARNI KO'RSATISH UCHUN MANA SHU QISMNI QO'SHING -->
+
     {% if form.errors %}
         <div style="background: #fff5f5; color: #e74a3b; padding: 15px; border-radius: 10px; border: 1px solid #e74a3b; margin-bottom: 20px;">
             <strong>Xatolik bor:</strong>
@@ -79,19 +79,27 @@
                     <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568;">Kitob muqovasi (rasm):</label>
                     <div style="padding: 10px; border: 2px dashed #e2e8f0; border-radius: 10px; background: #f8fafc;">
                         {{ form.image }}
+                        {% if p.image %}
+    <img src="{{ p.image.url }}" class="img-fluid">
+{% else %}
+    <img src="/static/images/no-photo.jpg" class="img-fluid">
+{% endif %}
                     </div>
                 </div>
-            </div>
+        </div>
 
             <!-- Tugmalar -->
             <div style="display: flex; gap: 15px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 25px;">
-                <button type="submit" style="background: #4e73df; color: white; border: none; padding: 12px 30px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; flex: 1;">
-                    💾 Saqlash
-                </button>
-                <a href="{% url 'dashboard' %}" style="background: #f8f9fc; color: #4e73df; text-decoration: none; border: 1px solid #d1d9ff; padding: 12px 30px; border-radius: 12px; font-weight: bold; text-align: center; transition: 0.3s; flex: 1;">
-                    ⬅ Orqaga
-                </a>
-            </div>
+            <button type="submit" style="background: #4e73df; color: white; border: none; padding: 12px 30px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; flex: 1;">
+                💾 Saqlash
+            </button>
+            <a href="{% url 'dashboard' %}" style="background: #f8f9fc; color: #4e73df; text-decoration: none; border: 1px solid #d1d9ff; padding: 12px 30px; border-radius: 12px; font-weight: bold; text-align: center; transition: 0.3s; flex: 1;">
+                ⬅ Orqaga
+            </a>
+        </div>
+
+    </form>
+</div>
         </form>
     </div>
 </div>

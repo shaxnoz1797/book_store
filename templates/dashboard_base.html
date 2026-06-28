@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* 1. Umumiy sahifa sozlamalari */
+    body {
+        margin: 0; padding: 0; background-color: #f4f7f6;
+        font-family: 'Segoe UI', sans-serif;
+        overflow-x: hidden;
+    }
+
+    /* 2. Sidebar - Qotirilgan (Fixed) */
+    .sidebar-wrapper {
+        width: 250px;
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        background: #2c3e50;
+        z-index: 1000;
+        padding: 20px;
+        color: white;
+    }
+
+    /* 3. Asosiy kontent - Sidebar kengligicha o'ngga surilgan */
+    .main-content {
+        margin-left: 250px !important; /* Sidebar kengligi */
+        padding: 30px;
+        width: calc(100% - 250px);
+        min-height: 100vh;
+        display: block;
+    }
+
+    /* 4. Navigatsiya linklari */
+    .nav-link-custom {
+        color: #bdc3c7;
+        text-decoration: none;
+        display: block;
+        padding: 12px 15px;
+        border-radius: 10px;
+        margin-bottom: 5px;
+        transition: 0.3s;
+    }
+    .nav-link-custom:hover {
+        background: #34495e;
+        color: #f1c40f;
+    }
+    .nav-link-custom.active {
+        background: #34495e;
+        color: #f1c40f;
+        font-weight: bold;
+    }
+
+    /* 5. Kartochkalar va Bloklar orasidagi masofa */
+    .card, .row, .dynamic-container {
+        margin-bottom: 30px !important;
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    /* Toast (Xabarnoma) stili */
+    #toast-container {
+        position: fixed; bottom: 30px; right: 30px; z-index: 10000;
+        display: flex; flex-direction: column; gap: 10px;
+    }
+    .nejniy-toast {
+        background: white; border-radius: 12px; padding: 15px 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex;
+        align-items: center; gap: 12px; border-left: 5px solid #1cc88a;
+        animation: slideIn 0.4s ease-out forwards;
+    }
+    .nejniy-toast.danger { border-left-color: #e74a3b; background: #fff5f5; }
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Mobil qurilmalar uchun moslashuv */
+    @media (max-width: 768px) {
+        .sidebar-wrapper { width: 100%; height: auto; position: relative; }
+        .main-content { margin-left: 0 !important; width: 100%; }
+    }
+</style>
+
+<div class="container-fluid p-0">
+    <div class="d-flex">
+        <!-- SIDEBAR -->
+        <div class="sidebar-wrapper d-none d-md-block">
+            <h4 class="text-warning fw-bold mb-4">📚 Kitob Dunyosi</h4>
+            <nav>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link-custom" href="{% url 'dashboard' %}">🏠 Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-custom" href="{% url 'dashboard_orders' %}">📦 Buyurtmalar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-custom" href="{% url 'dashboard_products' %}">📚 Mavjud Kitoblar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-custom" href="{% url 'dashboard_customers' %}">👤 Mijozlar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-custom" href="{% url 'dashboard_authors' %}">✍️ Mualliflar</a>
+                    </li>
+                </ul>
+                <hr class="text-secondary my-4">
+                <a href="{% url 'home' %}" class="nav-link-custom text-danger">⬅️ Saytga qaytish</a>
+            </nav>
+        </div>
+
+        <!-- ASOSIY KONTENT -->
+        <main class="main-content">
+    {% block dash_content %}
+    <!-- Bu yer bo'sh tursin, dashboard.html o'zi to'ldiradi -->
+    {% endblock %}
+
+<div class="container mt-3">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+
+        </main>
+    </div>
+</div>
+
+<!-- XABARNOMALAR KONTEYNERI -->
+<div id="toast-container"></div>
+
+<script>
+    function showToast(text, type = 'success') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = `nejniy-toast ${type}`;
+        let icon = (type === 'success') ? '✅' : '🗑️';
+        toast.innerHTML = `<span style="font-size: 20px;">${icon}</span><span>${text}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 500);
+        }, 3500);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if messages %}
+            {% for message in messages %}
+                showToast("{{ message }}", "{% if message.tags == 'success' %}success{% else %}danger{% endif %}");
+            {% endfor %}
+        {% endif %}
+    });
+</script>
+{% endblock %}

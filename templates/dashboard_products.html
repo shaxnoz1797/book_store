@@ -1,0 +1,60 @@
+{% extends 'dashboard_base.html' %}
+
+{% block dash_content %}
+<h2>Mahsulotlar ro'yxati</h2>
+<div class="table-responsive">
+    <table class="table">
+        <!-- Bu yerga dashboard.html dagi mahsulotlar jadvalini ko'chirib o'tqazing -->
+        <thead class="bg-light">
+                    <tr style="font-size: 0.75rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px;">
+                        <th class="ps-3">RASM</th>
+                        <th>KITOB NOMI</th>
+                        <th>MUALLIF</th> <!-- YANGI USTUN -->
+                        <th>KATEGORIYA</th>
+                        <th>NARXI</th>
+                        <th>SONI</th>
+                        <th>HOLAT</th>
+                        <th class="text-end pe-3">AMALLAR</th>
+                    </tr>
+                </thead>
+        <tbody>
+            {% for product in all_products %}
+                <tr style="font-size: 0.85rem; border-bottom: 1px solid #f8f9fa;">
+                        <td class="ps-3">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" width="35" height="45" style="object-fit: cover; border-radius: 4px;">
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold text-dark">{{ product.name }}</td>
+                        <!-- MUALLIF ISMI SHU YERDA -->
+                        <td class="text-muted small">{{ product.author.name|default:"-" }}</td>
+                        <td class="text-muted small">{{ product.category.name }}</td>
+                        <td class="text-dark">{{ product.price }} so'm</td>
+                        <td>
+                            {% if product.stock <= product.min_stock_limit %}
+                                <span class="text-danger fw-bold">⚠️ {{ product.stock }}</span>
+                            {% else %}
+                                {{ product.stock }} ta
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge {% if product.stock > 0 %}bg-success-light text-success{% else %}bg-danger-light text-danger{% endif %}" style="padding: 5px 10px; border-radius: 10px; font-size: 0.7rem;">
+                                {{ product.stock|yesno:"Sotuvda,Tugagan" }}
+                            </span>
+                        </td>
+                        <td class="text-end pe-3">
+                            <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-light text-primary">✏️</a>
+                            <!-- Masalan, dashboard.html dagi o'chirish tugmasi -->
+<form action="{% url 'delete_product' product.id %}" method="POST" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger" onclick="return confirm('Rostdan o'chirmoqchimisiz?')">
+        O'chirish
+    </button>
+</form>
+                        </td>
+                    </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

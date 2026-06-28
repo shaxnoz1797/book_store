@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Sizning savatchangiz</h2>
+    <div class="card shadow">
+        <div class="card-body">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Kitob</th>
+                        <th>Soni</th>
+                        <th>Narxi</th>
+                        <th>Jami</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart.items.all %}
+                    <tr>
+                        <td>
+                            <strong>{{ item.product.name }}</strong>
+                        </td>
+                        <td>{{ item.quantity }} dona</td>
+                        <td>{{ item.product.price }} so'm</td>
+                        <td>{{ item.get_total_price }} so'm</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-4">Savatchangiz hozircha bo'sh.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="d-flex justify-content-between mt-4">
+                <h4>Umumiy summa: <span class="text-primary">{{ cart.total_price }} so'm</span></h4>
+                <!-- KEYINGI BOSQICH: TO'LOV TUGMASI -->
+                <a href="{% url 'checkout' %}" class="btn btn-success btn-lg">To'lov qilishga o'tish</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

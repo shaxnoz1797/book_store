@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5 text-center">
+    <div class="card shadow p-5">
+        <h2>💳 Payme orqali to'lov</h2>
+        <p>Buyurtma raqami: #{{ order.id }}</p>
+        <p>To'lanadigan summa: <strong>{{ order.total_price }} so'm</strong></p>
+        <hr>
+        <div class="alert alert-info">
+            Bu yerda Payme yoki Click tugmasi turadi (Hozircha simulyatsiya).
+        </div>
+        <a href="{% url 'home' %}" class="btn btn-success">To'lov qildim (Tasdiqlash)</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'dashboard_base.html' %}
+
+{% block dash_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Kitob Kategoriyalari (Janrlar)</h1>
+    <!-- Agar yangi kategoriya qo'shish funksiyasi bo'lsa, bu yerga tugma qo'yish mumkin -->
+    <button class="btn btn-primary btn-sm">+ Yangi kategoriya</button>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 10%">#ID</th>
+                                <th style="width: 60%">Kategoriya nomi</th>
+                                <th style="width: 30%">Kitoblar soni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat in categories %}
+                            <tr>
+                                <td><strong>{{ cat.id }}</strong></td>
+                                <td>{{ cat.name }}</td>
+                                <td>
+                                    <span class="badge bg-info text-dark">
+                                        {{ cat.products.count }} ta kitob
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">
+                                    Hozircha kategoriyalar mavjud emas.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yon tomonda kichik ma'lumot -->
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5 class="card-title">Ma'lumot</h5>
+                <p class="card-text text-muted">
+                    Bu bo'limda kitob do'koningizdagi barcha janrlar ro'yxati ko'rsatilgan.
+                    Har bir janr yonida o'sha janrga tegishli qancha kitob borligini ko'rishingiz mumkin.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
