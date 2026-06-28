@@ -59,7 +59,7 @@ class Order(models.Model):
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Mijoz")
-    # Bu yerda 'product' va 'quantity'ni o'chirib tashlaymiz, chunki ular OrderItem-ga o'tadi
+
 
     full_name = models.CharField(max_length=255, verbose_name="F.I.SH")
     phone = models.CharField(max_length=20, verbose_name="Telefon")
@@ -81,7 +81,7 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    price = models.DecimalField(max_digits=12, decimal_places=2)  # Sotilgan paytdagi narxi
+    price = models.DecimalField(max_digits=12, decimal_places=2)
     quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
@@ -92,13 +92,11 @@ class OrderItem(models.Model):
 @receiver(post_save, sender=Order)
 def update_stock_and_cache(sender, instance, created, **kwargs):
     if created:
-        # keshni tozalash va xabar qoldiramiz
         cache.delete('low_stock_products')
 
 
 
 class Cart(models.Model):
-    # 2. User o'rniga settings.AUTH_USER_MODEL ni ishlatamiz
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

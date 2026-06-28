@@ -5,4 +5,4 @@ class ShopConfig(AppConfig):
     name = 'shop'
 
     def ready(self):
-        import shop.signals # Signalni yoqish
+        import shop.signals

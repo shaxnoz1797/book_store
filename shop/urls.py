@@ -10,7 +10,7 @@ urlpatterns = [
     path('restock/<int:pk>/', views.restock_product, name='restock_product'),
     path('confirm-payment/<int:pk>/', views.confirm_payment, name='confirm_payment'),
 
-    # urls.py ichida
+
     path('export-excel/', views.export_sales_excel, name='export_sales_excel'),
     path('invoice/pdf/<int:order_id>/', views.generate_invoice_pdf, name='generate_invoice_pdf'),
 

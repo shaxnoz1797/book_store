@@ -24,7 +24,7 @@ schema_view = get_schema_view(
       description="Kurs ishi API hujjatlari",
    ),
    public=True,
-   permission_classes=(permissions.AllowAny,), # Hujjatni hamma ko'ra olishi uchun
+   permission_classes=(permissions.AllowAny,),
 )
 
 urlpatterns = [

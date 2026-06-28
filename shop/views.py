@@ -252,7 +252,7 @@ def generate_invoice_pdf(request, order_id):
     p.line(100, height - 170, 500, height - 170)
 
     # MANA BU YERDA LOOP (SIKL) ISHLATAMIZ
-    y_position = height - 190  # Birinchi kitobning balandligi
+    y_position = height - 190
 
     for item in order.items.all():
         # Kitob nomini chiqaramiz
@@ -262,9 +262,9 @@ def generate_invoice_pdf(request, order_id):
         # Narxini chiqaramiz
         p.drawString(430, y_position, f"{item.price} so'm")
 
-        y_position -= 20  # Keyingi kitob uchun pastga tushamiz
+        y_position -= 20
 
-        # Agar kitoblar juda ko'p bo'lsa, varaqdan chiqib ketmasligini tekshirish mumkin
+
         if y_position < 100:
             p.showPage()
             y_position = height - 50
@@ -284,12 +284,12 @@ def add_product(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
-            # try-except va print'ni o'rniga to'g'ridan-to'g'ri saqlaymiz
+
             form.save()
             messages.success(request, "Kitob muvaffaqiyatli qo'shildi! ✅")
             return redirect('dashboard')
         else:
-            # Print o'rniga foydalanuvchiga xabar yuboramiz
+
             messages.error(request, "Formada xatolik bor, iltimos ma'lumotlarni tekshiring! ❌")
     else:
         form = ProductForm()
@@ -297,40 +297,19 @@ def add_product(request):
     return render(request, 'add_product.html', {'form': form})
 
 
+
 def create_order(request, product_id):
     product = get_object_or_404(Product, id=product_id)
 
-    # Eskicha Order.objects.create(product=product...) kodini o'chiring
-    # Buning o'rniga foydalanuvchini checkout sahifasiga yuboramiz
-    # va u yerda buyurtma rasmiylashtiriladi.
-
-    # Eng oson yo'li: Savatchaga qo'shish va checkoutga yuborish
     cart, created = Cart.objects.get_or_create(user=request.user)
     cart_item, item_created = CartItem.objects.get_or_create(cart=cart, product=product)
     if not item_created:
         cart_item.quantity += 1
         cart_item.save()
 
-    return redirect('checkout')  # To'g'ridan-to'g'ri to'lov sahifasiga
-
-    product = get_object_or_404(Product, id=product_id)
-
-    # 1. Ombor tekshiruvi
-    if product.stock > 0:
-        Order.objects.create(
-            user=request.user,
-            product=product,
-            quantity=1,
-            is_paid=False
-        )
-
-        messages.success(request, f"'{product.name}' uchun buyurtma qabul qilindi! ✅")
-    else:
-
-        messages.error(request, f"Afsuski, '{product.name}' kitobi omborda qolmagan. ❌")
+    return redirect('checkout')
 
 
-    return redirect('dashboard')
 
 
 @staff_member_required
@@ -411,8 +390,7 @@ def dashboard_products(request):
 
 @staff_member_required
 def dashboard_orders(request):
-    # ESKI: Order.objects.select_related('product').all() <-- product ni olib tashlang
-    # YANGI:
+
     orders = Order.objects.select_related('user').prefetch_related('items__product').all().order_by('-created_at')
 
     return render(request, 'dashboard_orders.html', {'orders': orders})
