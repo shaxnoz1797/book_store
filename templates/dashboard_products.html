@@ -4,7 +4,7 @@
 <h2>Mahsulotlar ro'yxati</h2>
 <div class="table-responsive">
     <table class="table">
-        <!-- Bu yerga dashboard.html dagi mahsulotlar jadvalini ko'chirib o'tqazing -->
+
         <thead class="bg-light">
                     <tr style="font-size: 0.75rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px;">
                         <th class="ps-3">RASM</th>
@@ -26,7 +26,7 @@
                             {% endif %}
                         </td>
                         <td class="fw-bold text-dark">{{ product.name }}</td>
-                        <!-- MUALLIF ISMI SHU YERDA -->
+                        <!-- MUALLIF ISMI  -->
                         <td class="text-muted small">{{ product.author.name|default:"-" }}</td>
                         <td class="text-muted small">{{ product.category.name }}</td>
                         <td class="text-dark">{{ product.price }} so'm</td>
@@ -44,7 +44,7 @@
                         </td>
                         <td class="text-end pe-3">
                             <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-light text-primary">✏️</a>
-                            <!-- Masalan, dashboard.html dagi o'chirish tugmasi -->
+                            <!--  o'chirish tugmasi -->
 <form action="{% url 'delete_product' product.id %}" method="POST" style="display:inline;">
     {% csrf_token %}
     <button type="submit" class="btn btn-danger" onclick="return confirm('Rostdan o'chirmoqchimisiz?')">

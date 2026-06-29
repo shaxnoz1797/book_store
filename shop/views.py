@@ -7,6 +7,7 @@ from datetime import timedelta
 import requests
 from django.core.cache import cache
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.admin.views.decorators import staff_member_required
@@ -29,7 +30,7 @@ from .forms import ProductForm
 from .serializers import CategorySerializer, ProductSerializer, OrderSerializer
 
 
-from django.contrib.auth.decorators import login_required
+
 
 User = get_user_model()
 
@@ -420,6 +421,7 @@ def dashboard_categories(request):
     return render(request, 'dashboard_categories.html', {'categories': categories})
 
 
+
 @login_required
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -434,9 +436,11 @@ def add_to_cart(request, product_id):
 
 
 
+@login_required
 def cart_detail(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
     return render(request, 'cart_detail.html', {'cart': cart})
+
 
 
 @login_required
@@ -500,3 +504,9 @@ def checkout(request):
         return render(request, 'order_success.html', {'order': order})
 
     return render(request, 'checkout.html', {'cart': cart})
+
+
+
+def book_detail(request, pk):
+    book = get_object_or_404(Product, pk=pk)
+    return render(request, 'book_detail.html', {'book': book})

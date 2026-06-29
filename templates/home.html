@@ -15,6 +15,7 @@
 </form>
 
 
+
 <!-- Janrlar (Kategoriyalar) ro'yxati -->
 <div class="list-group">
     <a href="{% url 'home' %}" class="list-group-item list-group-item-action {% if not selected_category %}active{% endif %}">
@@ -24,11 +25,9 @@
         <a href="?category={{ cat.id }}" class="list-group-item list-group-item-action {% if selected_category == cat.id|stringformat:'s' %}active{% endif %}">
             {{ cat.name }}
         </a>
-
-
     {% endfor %}
 </div>
-<!-- Mahsulotlar tugagandan keyin, pastda turishi kerak -->
+
 <div class="container mt-5">
     <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center">
@@ -72,20 +71,28 @@
     {% for product in products %}
     <div class="col-md-4 mb-4">
         <div class="card h-100 shadow-sm">
-            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+            <!-- Rasmga ham link  -->
+            <a href="{% url 'book_detail' product.id %}">
+                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+            </a>
             <div class="card-body">
                 <h5 class="card-title">{{ product.name }}</h5>
                 <p class="card-text text-muted">{{ product.description|truncatewords:10 }}</p>
-                <div class="d-flex flex-column gap-2"> <!-- Tugmalarni chiroyli joylash uchun -->
+                <div class="d-flex flex-column gap-2">
                     <span class="h5 mb-2 text-primary">{{ product.price }} so'm</span>
 
                     <div class="btn-group">
-                        <!-- 1. Savatchaga qo'shish tugmasi (Yangi qo'shildi) -->
-                        <a href="{% url 'add_to_cart' product.id %}" class="btn btn-outline-primary btn-sm">
-                            Savatchaga +
+                        <!-- 1. Batafsil tugmasi  -->
+                        <a href="{% url 'book_detail' product.id %}" class="btn btn-outline-info btn-sm">
+                            Batafsil
                         </a>
 
-                        <!-- 2. Sotib olish tugmasi (Eski tugma) -->
+                        <!-- 2. Savatchaga qo'shish -->
+                        <a href="{% url 'add_to_cart' product.id %}" class="btn btn-outline-primary btn-sm">
+                            Savat +
+                        </a>
+
+                        <!-- 3. Sotib olish -->
                         <a href="{% url 'create_order' product.id %}" class="btn btn-primary btn-sm">
                             Sotib olish
                         </a>
